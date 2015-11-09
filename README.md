@@ -12,5 +12,5 @@ Rielaboration of [this book's examples](http://www.apress.com/9781430264606). Yo
 2. [Check out code and set up development environment](https://github.com/ecologylab/simpl/wiki/Check-out-code-and-set-up-development-environment)
 
    ```bash
-   https://github.com/chrisvoo/javafx8_examples.git
+   git clone https://github.com/chrisvoo/javafx8_examples.git
    ```
