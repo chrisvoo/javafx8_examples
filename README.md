@@ -1,2 +1,2 @@
-# javafx8_examples
-Rielaboration of book's examples, [JavaFX8 Introduction by example](http://www.apress.com/9781430264606)
+# JavaFX8 Introduction by example
+Rielaboration of [this book's examples](http://www.apress.com/9781430264606). You can find original code examples [here](http://www.apress.com/downloadable/download/sample/sample_id/1548/).
