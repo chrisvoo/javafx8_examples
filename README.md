@@ -5,7 +5,7 @@ Rielaboration of [this book's examples](http://www.apress.com/9781430264606). Yo
   1. Java8: Lamda expressions
   2. [NetBeans](https://netbeans.org/)
   3. [Run With Arguments NetBeans plugin](http://plugins.netbeans.org/plugin/53855/run-with-arguments): this is used to choose which method to execute for showing the desired demo;
-1. [Set up Git](https://help.github.com/articles/set-up-git/)
+2. [Set up Git](https://help.github.com/articles/set-up-git/)
 
    ```bash
    git config --global user.name "YOUR NAME"
@@ -13,7 +13,7 @@ Rielaboration of [this book's examples](http://www.apress.com/9781430264606). Yo
    # Caching your GitHub password in Git
    git config --global credential.helper cache   
    ```
-2. [Check out code and set up development environment](https://github.com/ecologylab/simpl/wiki/Check-out-code-and-set-up-development-environment)
+3. [Check out code and set up development environment](https://github.com/ecologylab/simpl/wiki/Check-out-code-and-set-up-development-environment)
 
    ```bash
    git clone https://github.com/chrisvoo/javafx8_examples.git
