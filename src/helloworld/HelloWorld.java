@@ -63,17 +63,9 @@ public class HelloWorld extends Application {
         try {
             java.lang.reflect.Method method = this.getClass().getMethod(app, Stage.class);
             method.invoke(this, primaryStage);
-        } catch (IllegalAccessException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(HelloWorld.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(HelloWorld.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(HelloWorld.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(HelloWorld.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(HelloWorld.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
     }
 
     /**
