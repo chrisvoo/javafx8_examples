@@ -1,7 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* @author ccastelli
+ * GUI architectures: http://martinfowler.com/eaaDev/uiArchs.html.
+ * In short, JavaFX’s properties are wrapper objects holding actual values while providing change
+ * support, invalidation support, and binding capabilities.
+ * Properties are wrapper objects that have the ability to make values accessible as read/writable
+ * or read-only. All wrapper property classes are located in the javafx.beans.property.* package
+ * namespace.
  */
 package helloworld;
 
