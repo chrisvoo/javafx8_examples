@@ -5,25 +5,89 @@
  * Properties are wrapper objects that have the ability to make values accessible as read/writable
  * or read-only. All wrapper property classes are located in the javafx.beans.property.* package
  * namespace.
+ * Property change support is the ability to add handler code that will respond when a property changes. 
+ * JavaFX property objects contain an addListener() method. This method will accept two types of 
+ * functional interfaces, ChangeListener and InvalidationListener. 
+ *
+ * // Adding a change listener (lambda expression)
+ * xProperty.addListener((ObservableValue<? extends Number> ov, Number oldVal, Number newVal) -> {
+ *  // code goes here 
+ * });
+ * 
+ * // Adding a invalidation listener (lambda expression)
+ * xProperty.addListener((Observable o) -> { 
+ *  // code goes here
+ * });
+
+    A change event indicates that the value has changed. An invalidation event is generated, if the
+    current value is not valid anymore. This distinction becomes important, if the ObservableValue
+    supports lazy evaluation, because for a lazily evaluated value one does not know if an invalid value
+    really has changed until it is recomputed. For this reason, generating change events requires eager
+    evaluation while invalidation events can be generated for eager and lazy implementations.
+    The InvalidationListener provides a way to mark values as invalid but does not recompute the
+    value until it is needed. This is often used in UI layouts or custom controls, where you can avoid
+    unnecessary computations when nodes don’t need to be redrawn/repositioned during a layout
+    request or draw cycle.
+    Binding of properties is quite easy to do. The only requirement is that the property invoking the bind
+    must be a read/writeable property.
+    when property A binds
+    to property B the change in property B will update property A, but not the other way. If A is bound to
+    B you can’t update A, as you’ll get a RuntimeException: A bound value cannot be set.
+    
+    Bidirectional Binding
+    ---------------------------
+    allows you to bind properties with the same type allowing changes on either
+    end while keeping a value synchronized. When binding bi-directionally, it’s required that both
+    properties must be read/writable.
+
+    High-level Binding
+    ---------------------------
+    binding is lazy-evaluated, which means the computation (multiplying) doesn’t occur unless you invoke the
+    property’s (area) value via the get() (or getValue())method.
+    // Area = width * height
+    IntegerProperty width = new SimpleIntegerProperty(10);
+    IntegerProperty height = new SimpleIntegerProperty(10);
+
+    NumberBinding area = width.multiply(height);
+    
+    Low-Level Binding
+    ---------------------------
+    DoubleProperty radius = new SimpleDoubleProperty(2);
+        DoubleBinding volumeOfSphere = new DoubleBinding() {
+        {
+            super.bind(radius); // initial bind
+        }
+
+        @Override
+        protected double computeValue() {
+            // Math.pow() (power) cubes the radius
+            return (4 / 3 * Math.PI * Math.pow(radius.get(), 3));
+        }
+    };
+    
+
  */
 package helloworld;
 
-import java.lang.reflect.InvocationTargetException;
+import helloworld.models.User;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Reflection;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.RadialGradient;
@@ -36,13 +100,23 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.QuadCurve;
 import javafx.scene.shape.QuadCurveTo;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeType;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.scene.control.PasswordField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+
 
 /**
  * It requires RunWithArguments plugin:
@@ -53,7 +127,7 @@ import javafx.stage.Stage;
  * @author chris
  */
 public class HelloWorld extends Application {
-
+    
     /**
      * It runs code specified by the method name passed as argument to the
      * application
@@ -511,5 +585,132 @@ public class HelloWorld extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+    
+    public void loginDialog(Stage primStage) {
+        // create a model representing a user
+        User user = new User();
+        String MY_PASS = "password1";
+        BooleanProperty GRANTED_ACCESS = new SimpleBooleanProperty(false);
+        int MAX_ATTEMPTS = 3;
+        IntegerProperty ATTEMPTS = new SimpleIntegerProperty(0);
+        
+        // create a transparent stage
+        primStage.initStyle(StageStyle.TRANSPARENT);
+        
+        Group root = new Group();
+        Scene scene = new Scene(root, 320, 112, Color.rgb(0, 0, 0, 0));
+        primStage.setScene(scene);
+        
+        // all text, borders, svg paths will use white
+        Color foregroundColor = Color.rgb(255, 255, 255, .9);
+        
+        // rounded rectangular background 
+        Rectangle background = new Rectangle(320, 112);
+        background.setX(0);
+        background.setY(0);
+        background.setArcHeight(15);
+        background.setArcWidth(15);
+        background.setFill(Color.rgb(0, 0, 0, .55));
+        background.setStrokeWidth(1.5);
+        background.setStroke(foregroundColor);
+        
+        // a read only field holding the user name.
+        Text userName = new Text();
+        userName.setFont(Font.font("SanSerif", FontWeight.BOLD, 30));
+        userName.setFill(foregroundColor);
+        userName.setSmooth(true);
+        userName.textProperty().bind(user.userNameProperty());
+        
+        // wrap text node
+        HBox userNameCell = new HBox();
+        userNameCell.prefWidthProperty().bind(primStage.widthProperty().subtract(45));
+        userNameCell.getChildren().add(userName);
+        
+        // pad lock 
+        SVGPath padLock = new SVGPath();
+        padLock.setFill(foregroundColor);
+        padLock.setContent("M24.875,15.334v-4.876c0-4.894-3.981-8.875-8.875-8.875s-8.875,3.981-8.875,8.875v4.876H5.042v15.083h21.916V15.334H24.875zM10.625,10.458c0-2.964,2.411-5.375,5.375-5.375s5.375,2.411,5.375,5.375v4.876h-10.75V10.458zM18.272,26.956h-4.545l1.222-3.667c-0.782-0.389-1.324-1.188-1.324-2.119c0-1.312,1.063-2.375,2.375-2.375s2.375,1.062,2.375,2.375c0,0.932-0.542,1.73-1.324,2.119L18.272,26.956z");
+        
+        // first row 
+        HBox row1 = new HBox();
+        row1.getChildren().addAll(userNameCell, padLock);
+        
+        
+        // password text field 
+        PasswordField passwordField = new PasswordField();
+        passwordField.setFont(Font.font("SanSerif", 20));
+        passwordField.setPromptText("Password");
+        passwordField.setStyle("-fx-text-fill:black; "
+                            + "-fx-prompt-text-fill:gray; "
+                            + "-fx-highlight-text-fill:black; "
+                            + "-fx-highlight-fill: gray; "
+                            + "-fx-background-color: rgba(255, 255, 255, .80); ");
+        passwordField.prefWidthProperty().bind(primStage.widthProperty().subtract(55));
+        user.passwordProperty().bind(passwordField.textProperty());
+        
+        // error icon 
+        SVGPath deniedIcon = new SVGPath();
+        deniedIcon.setFill(Color.rgb(255, 0, 0, .9));
+        deniedIcon.setStroke(Color.WHITE);// 
+        deniedIcon.setContent("M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z");
+        deniedIcon.setVisible(false);
+        
+        SVGPath grantedIcon = new SVGPath();
+        grantedIcon.setFill(Color.rgb(0, 255, 0, .9));
+        grantedIcon.setStroke(Color.WHITE);// 
+        grantedIcon.setContent("M2.379,14.729 5.208,11.899 12.958,19.648 25.877,6.733 28.707,9.561 12.958,25.308z");
+        grantedIcon.setVisible(false);
+        
+        StackPane accessIndicator = new StackPane();
+        accessIndicator.getChildren().addAll(deniedIcon, grantedIcon);
+        accessIndicator.setAlignment(Pos.CENTER_RIGHT);
+        
+        grantedIcon.visibleProperty().bind(GRANTED_ACCESS);
+        
+        // second row
+        HBox row2 = new HBox(3);
+        row2.getChildren().addAll(passwordField, accessIndicator);
+        HBox.setHgrow(accessIndicator, Priority.ALWAYS);
+        
+        // user hits the enter key
+        passwordField.setOnAction(actionEvent -> {
+            if (GRANTED_ACCESS.get()) {
+                System.out.printf("User %s is granted access.\n", user.getUserName());
+                System.out.printf("User %s entered the password: %s\n", user.getUserName(), user.getPassword());
+                Platform.exit();
+            } else {
+                deniedIcon.setVisible(true); 
+            }
+            ATTEMPTS.set(ATTEMPTS.add(1).get());
+            System.out.println("Attempts: " + ATTEMPTS.get());
+        });
+        
+        // listener when the user types into the password field
+        passwordField.textProperty().addListener((obs, ov, nv) -> {
+            boolean granted = passwordField.getText().equals(MY_PASS);
+            GRANTED_ACCESS.set(granted);
+            if (granted) {
+                deniedIcon.setVisible(false);
+            }
+        });
+        
+        // listener on number of attempts
+        ATTEMPTS.addListener((obs, ov, nv) -> {
+            if (MAX_ATTEMPTS == nv.intValue()) {
+                // failed attemps
+                System.out.printf("User %s is denied access.\n", user.getUserName());
+                Platform.exit();
+            }
+        });
+        
+        VBox formLayout = new VBox(4);
+        formLayout.getChildren().addAll(row1, row2);
+        formLayout.setLayoutX(12);
+        formLayout.setLayoutY(12);
+
+        root.getChildren().addAll(background, formLayout);
+
+        primStage.show();
     }
 }
