@@ -1,72 +1,4 @@
-/* @author ccastelli
- * GUI architectures: http://martinfowler.com/eaaDev/uiArchs.html.
- * In short, JavaFX’s properties are wrapper objects holding actual values while providing change
- * support, invalidation support, and binding capabilities.
- * Properties are wrapper objects that have the ability to make values accessible as read/writable
- * or read-only. All wrapper property classes are located in the javafx.beans.property.* package
- * namespace.
- * Property change support is the ability to add handler code that will respond when a property changes. 
- * JavaFX property objects contain an addListener() method. This method will accept two types of 
- * functional interfaces, ChangeListener and InvalidationListener. 
- *
- * // Adding a change listener (lambda expression)
- * xProperty.addListener((ObservableValue<? extends Number> ov, Number oldVal, Number newVal) -> {
- *  // code goes here 
- * });
- * 
- * // Adding a invalidation listener (lambda expression)
- * xProperty.addListener((Observable o) -> { 
- *  // code goes here
- * });
-
-    A change event indicates that the value has changed. An invalidation event is generated, if the
-    current value is not valid anymore. This distinction becomes important, if the ObservableValue
-    supports lazy evaluation, because for a lazily evaluated value one does not know if an invalid value
-    really has changed until it is recomputed. For this reason, generating change events requires eager
-    evaluation while invalidation events can be generated for eager and lazy implementations.
-    The InvalidationListener provides a way to mark values as invalid but does not recompute the
-    value until it is needed. This is often used in UI layouts or custom controls, where you can avoid
-    unnecessary computations when nodes don’t need to be redrawn/repositioned during a layout
-    request or draw cycle.
-    Binding of properties is quite easy to do. The only requirement is that the property invoking the bind
-    must be a read/writeable property.
-    when property A binds
-    to property B the change in property B will update property A, but not the other way. If A is bound to
-    B you can’t update A, as you’ll get a RuntimeException: A bound value cannot be set.
-    
-    Bidirectional Binding
-    ---------------------------
-    allows you to bind properties with the same type allowing changes on either
-    end while keeping a value synchronized. When binding bi-directionally, it’s required that both
-    properties must be read/writable.
-
-    High-level Binding
-    ---------------------------
-    binding is lazy-evaluated, which means the computation (multiplying) doesn’t occur unless you invoke the
-    property’s (area) value via the get() (or getValue())method.
-    // Area = width * height
-    IntegerProperty width = new SimpleIntegerProperty(10);
-    IntegerProperty height = new SimpleIntegerProperty(10);
-
-    NumberBinding area = width.multiply(height);
-    
-    Low-Level Binding
-    ---------------------------
-    DoubleProperty radius = new SimpleDoubleProperty(2);
-        DoubleBinding volumeOfSphere = new DoubleBinding() {
-        {
-            super.bind(radius); // initial bind
-        }
-
-        @Override
-        protected double computeValue() {
-            // Math.pow() (power) cubes the radius
-            return (4 / 3 * Math.PI * Math.pow(radius.get(), 3));
-        }
-    };
-    
-
- */
+/* @author ccastelli  */
 package helloworld;
 
 import helloworld.models.User;
@@ -81,6 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -116,6 +49,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.WindowEvent;
 
 
 /**
@@ -587,6 +521,73 @@ public class HelloWorld extends Application {
         primaryStage.show();
     }
     
+    /**
+     * Simple login dialog box for showing binding properties usage.
+     * In short, JavaFX’s properties are wrapper objects holding actual values while providing change
+     * support, invalidation support, and binding capabilities. 
+     * Properties are wrapper objects that have the ability to make values accessible as read/writable 
+     * or read-only. All wrapper property classes are located in the javafx.beans.property.* package 
+     * namespace.
+     * Property change support is the ability to add handler code that will respond when a property changes. 
+     * JavaFX property objects contain an addListener() method. This method will accept two types of  
+     * functional interfaces, ChangeListener and InvalidationListener.  
+     * 
+     * // Adding a change listener (lambda expression)
+     * xProperty.addListener((ObservableValue<? extends Number> ov, Number oldVal, Number newVal) -> {
+     * // code goes here 
+     * });
+     * 
+     * // Adding a invalidation listener (lambda expression) 
+     * xProperty.addListener((Observable o) -> {  
+     *  // code goes here
+     * });
+     * 
+     * A change event indicates that the value has changed. An invalidation event is generated, if the
+     * current value is not valid anymore. This distinction becomes important, if the ObservableValue
+     * supports lazy evaluation, because for a lazily evaluated value one does not know if an invalid value
+     * really has changed until it is recomputed. For this reason, generating change events requires eager 
+     * evaluation while invalidation events can be generated for eager and lazy implementations. 
+     * The InvalidationListener provides a way to mark values as invalid but does not recompute the 
+     * value until it is needed. This is often used in UI layouts or custom controls, where you can avoid 
+     * unnecessary computations when nodes don’t need to be redrawn/repositioned during a layout 
+     * request or draw cycle. 
+     * Binding of properties is quite easy to do. The only requirement is that the property invoking the bind 
+     * must be a read/writeable property. 
+     * When property A binds to property B the change in property B will update property A, but not the 
+     * other way. If A is bound to B you can’t update A, as you’ll get a RuntimeException: A bound value 
+     * cannot be set.
+     * 
+     * Bidirectional Binding
+     * ---------------------------
+     * allows you to bind properties with the same type allowing changes on either 
+     * end while keeping a value synchronized. When binding bi-directionally, it’s required that both 
+     * properties must be read/writable.
+     * 
+     * High-level Binding
+     * ---------------------------
+     * binding is lazy-evaluated, which means the computation (multiplying) doesn’t occur unless you invoke the
+     * property’s (area) value via the get() (or getValue())method.
+     * // Area = width * height
+     * IntegerProperty width = new SimpleIntegerProperty(10);
+     * IntegerProperty height = new SimpleIntegerProperty(10);
+     * NumberBinding area = width.multiply(height);
+     * 
+     * Low-Level Binding
+     * ---------------------------
+     * DoubleProperty radius = new SimpleDoubleProperty(2);
+     * DoubleBinding volumeOfSphere = new DoubleBinding() {
+     *  {
+     *   super.bind(radius); // initial bind
+     *  }
+     * 
+     *  @Override
+     *  protected double computeValue() {
+     *  // Math.pow() (power) cubes the radius
+     *    return (4 / 3 * Math.PI * Math.pow(radius.get(), 3));
+     *  }
+     * };
+     * @param primStage 
+     */
     public void loginDialog(Stage primStage) {
         // create a model representing a user
         User user = new User();
@@ -627,7 +628,7 @@ public class HelloWorld extends Application {
         userNameCell.prefWidthProperty().bind(primStage.widthProperty().subtract(45));
         userNameCell.getChildren().add(userName);
         
-        // pad lock 
+        // pad lock, W3C SVG path notation as a string
         SVGPath padLock = new SVGPath();
         padLock.setFill(foregroundColor);
         padLock.setContent("M24.875,15.334v-4.876c0-4.894-3.981-8.875-8.875-8.875s-8.875,3.981-8.875,8.875v4.876H5.042v15.083h21.916V15.334H24.875zM10.625,10.458c0-2.964,2.411-5.375,5.375-5.375s5.375,2.411,5.375,5.375v4.876h-10.75V10.458zM18.272,26.956h-4.545l1.222-3.667c-0.782-0.389-1.324-1.188-1.324-2.119c0-1.312,1.063-2.375,2.375-2.375s2.375,1.062,2.375,2.375c0,0.932-0.542,1.73-1.324,2.119L18.272,26.956z");
@@ -641,6 +642,7 @@ public class HelloWorld extends Application {
         PasswordField passwordField = new PasswordField();
         passwordField.setFont(Font.font("SanSerif", 20));
         passwordField.setPromptText("Password");
+        // JavaFX CSS attributes
         passwordField.setStyle("-fx-text-fill:black; "
                             + "-fx-prompt-text-fill:gray; "
                             + "-fx-highlight-text-fill:black; "
@@ -649,7 +651,7 @@ public class HelloWorld extends Application {
         passwordField.prefWidthProperty().bind(primStage.widthProperty().subtract(55));
         user.passwordProperty().bind(passwordField.textProperty());
         
-        // error icon 
+        // error icon, W3C SVG path notation as a string
         SVGPath deniedIcon = new SVGPath();
         deniedIcon.setFill(Color.rgb(255, 0, 0, .9));
         deniedIcon.setStroke(Color.WHITE);// 
@@ -662,6 +664,7 @@ public class HelloWorld extends Application {
         grantedIcon.setContent("M2.379,14.729 5.208,11.899 12.958,19.648 25.877,6.733 28.707,9.561 12.958,25.308z");
         grantedIcon.setVisible(false);
         
+        // The StackPane layout allows child nodes to be stacked
         StackPane accessIndicator = new StackPane();
         accessIndicator.getChildren().addAll(deniedIcon, grantedIcon);
         accessIndicator.setAlignment(Pos.CENTER_RIGHT);
@@ -712,5 +715,52 @@ public class HelloWorld extends Application {
         root.getChildren().addAll(background, formLayout);
 
         primStage.show();
+    }
+    
+    /**
+     * The HBox layout’s job is to place JavaFX child nodes in a horizontal row (default 
+     * alignment Pos.TOP_LEFT).
+     * The VBox layout is similar to an HBox, except that it places child nodes stacked in a vertical column.
+     * 
+     * @param primaryStage 
+     */
+    public void boxes(Stage primaryStage) {
+        Group root = new Group();
+        Scene scene = new Scene(root, 300, 250);
+        
+        HBox hbox = new HBox(5);         // pixels space between child nodes, equivalent of invoking the setSpacing()
+        hbox.setPadding(new Insets(1));  // padding between child nodes only
+        Rectangle r1 = new Rectangle(10, 10);
+        Rectangle r2 = new Rectangle(20, 20);
+        Rectangle r3 = new Rectangle(5, 20);
+        Rectangle r4 = new Rectangle(20, 5);
+
+        HBox.setMargin(r1, new Insets(2,2,2,2));
+        hbox.getChildren().addAll(r1, r2, r3, r4);
+        
+        
+        Rectangle v1 = new Rectangle(10, 10);
+        Rectangle v2 = new Rectangle(20, 20);
+        Rectangle v3 = new Rectangle(5, 20);
+        Rectangle v4 = new Rectangle(20, 5);
+        
+        VBox vbox = new VBox(5);        // spacing between child nodes only.
+        vbox.setPadding(new Insets(1)); // space between vbox border and child nodes column
+        VBox.setMargin(r1, new Insets(2,2,2,2)); // margin around r1
+        vbox.getChildren().addAll(v1, v2, v3, v4);
+  
+        root.getChildren().addAll(vbox, hbox);
+        
+        primaryStage.setOnShown((WindowEvent we) -> {
+            System.out.println("hbox width  " + hbox.getBoundsInParent().getWidth());
+            System.out.println("hbox height " + hbox.getBoundsInParent().getHeight());
+            System.out.println("vbox width  " + vbox.getBoundsInParent().getWidth());
+            System.out.println("vbox height " + vbox.getBoundsInParent().getHeight());
+            vbox.setLayoutX(hbox.getBoundsInParent().getWidth() + 2);
+        });
+        primaryStage.setTitle("HBox/VBox Example");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        
     }
 }
