@@ -17,6 +17,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -59,10 +60,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
@@ -83,7 +87,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
-
 /**
  * It requires RunWithArguments plugin:
  * http://plugins.netbeans.org/plugin/53855/run-with-arguments How to deploy
@@ -93,7 +96,7 @@ import javafx.util.Callback;
  * @author chris
  */
 public class HelloWorld extends Application {
-    
+
     /**
      * It runs code specified by the method name passed as argument to the
      * application
@@ -108,7 +111,7 @@ public class HelloWorld extends Application {
             method.invoke(this, primaryStage);
         } catch (Exception ex) {
             Logger.getLogger(HelloWorld.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
     }
 
     /**
@@ -552,73 +555,63 @@ public class HelloWorld extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     /**
-     * Simple login dialog box for showing binding properties usage.
-     * In short, JavaFX’s properties are wrapper objects holding actual values while providing change
-     * support, invalidation support, and binding capabilities. 
-     * Properties are wrapper objects that have the ability to make values accessible as read/writable 
-     * or read-only. All wrapper property classes are located in the javafx.beans.property.* package 
-     * namespace.
-     * Property change support is the ability to add handler code that will respond when a property changes. 
-     * JavaFX property objects contain an addListener() method. This method will accept two types of  
-     * functional interfaces, ChangeListener and InvalidationListener.  
-     * 
+     * Simple login dialog box for showing binding properties usage. In short,
+     * JavaFX’s properties are wrapper objects holding actual values while
+     * providing change support, invalidation support, and binding capabilities.
+     * Properties are wrapper objects that have the ability to make values
+     * accessible as read/writable or read-only. All wrapper property classes
+     * are located in the javafx.beans.property.* package namespace. Property
+     * change support is the ability to add handler code that will respond when
+     * a property changes. JavaFX property objects contain an addListener()
+     * method. This method will accept two types of functional interfaces,
+     * ChangeListener and InvalidationListener.
+     *
      * // Adding a change listener (lambda expression)
-     * xProperty.addListener((ObservableValue<? extends Number> ov, Number oldVal, Number newVal) -> {
-     * // code goes here 
-     * });
-     * 
-     * // Adding a invalidation listener (lambda expression) 
-     * xProperty.addListener((Observable o) -> {  
-     *  // code goes here
-     * });
-     * 
-     * A change event indicates that the value has changed. An invalidation event is generated, if the
-     * current value is not valid anymore. This distinction becomes important, if the ObservableValue
-     * supports lazy evaluation, because for a lazily evaluated value one does not know if an invalid value
-     * really has changed until it is recomputed. For this reason, generating change events requires eager 
-     * evaluation while invalidation events can be generated for eager and lazy implementations. 
-     * The InvalidationListener provides a way to mark values as invalid but does not recompute the 
-     * value until it is needed. This is often used in UI layouts or custom controls, where you can avoid 
-     * unnecessary computations when nodes don’t need to be redrawn/repositioned during a layout 
-     * request or draw cycle. 
-     * Binding of properties is quite easy to do. The only requirement is that the property invoking the bind 
-     * must be a read/writeable property. 
-     * When property A binds to property B the change in property B will update property A, but not the 
-     * other way. If A is bound to B you can’t update A, as you’ll get a RuntimeException: A bound value 
-     * cannot be set.
-     * 
-     * Bidirectional Binding
-     * ---------------------------
-     * allows you to bind properties with the same type allowing changes on either 
-     * end while keeping a value synchronized. When binding bi-directionally, it’s required that both 
-     * properties must be read/writable.
-     * 
-     * High-level Binding
-     * ---------------------------
-     * binding is lazy-evaluated, which means the computation (multiplying) doesn’t occur unless you invoke the
-     * property’s (area) value via the get() (or getValue())method.
-     * // Area = width * height
-     * IntegerProperty width = new SimpleIntegerProperty(10);
-     * IntegerProperty height = new SimpleIntegerProperty(10);
-     * NumberBinding area = width.multiply(height);
-     * 
-     * Low-Level Binding
-     * ---------------------------
-     * DoubleProperty radius = new SimpleDoubleProperty(2);
-     * DoubleBinding volumeOfSphere = new DoubleBinding() {
-     *  {
-     *   super.bind(radius); // initial bind
-     *  }
-     * 
-     *  @Override
-     *  protected double computeValue() {
-     *  // Math.pow() (power) cubes the radius
-     *    return (4 / 3 * Math.PI * Math.pow(radius.get(), 3));
-     *  }
-     * };
-     * @param primStage 
+     * xProperty.addListener((ObservableValue<? extends Number> ov, Number
+     * oldVal, Number newVal) -> { // code goes here });
+     *
+     * // Adding a invalidation listener (lambda expression)
+     * xProperty.addListener((Observable o) -> { // code goes here });
+     *
+     * A change event indicates that the value has changed. An invalidation
+     * event is generated, if the current value is not valid anymore. This
+     * distinction becomes important, if the ObservableValue supports lazy
+     * evaluation, because for a lazily evaluated value one does not know if an
+     * invalid value really has changed until it is recomputed. For this reason,
+     * generating change events requires eager evaluation while invalidation
+     * events can be generated for eager and lazy implementations. The
+     * InvalidationListener provides a way to mark values as invalid but does
+     * not recompute the value until it is needed. This is often used in UI
+     * layouts or custom controls, where you can avoid unnecessary computations
+     * when nodes don’t need to be redrawn/repositioned during a layout request
+     * or draw cycle. Binding of properties is quite easy to do. The only
+     * requirement is that the property invoking the bind must be a
+     * read/writeable property. When property A binds to property B the change
+     * in property B will update property A, but not the other way. If A is
+     * bound to B you can’t update A, as you’ll get a RuntimeException: A bound
+     * value cannot be set.
+     *
+     * Bidirectional Binding --------------------------- allows you to bind
+     * properties with the same type allowing changes on either end while
+     * keeping a value synchronized. When binding bi-directionally, it’s
+     * required that both properties must be read/writable.
+     *
+     * High-level Binding --------------------------- binding is lazy-evaluated,
+     * which means the computation (multiplying) doesn’t occur unless you invoke
+     * the property’s (area) value via the get() (or getValue())method. // Area
+     * = width * height IntegerProperty width = new SimpleIntegerProperty(10);
+     * IntegerProperty height = new SimpleIntegerProperty(10); NumberBinding
+     * area = width.multiply(height);
+     *
+     * Low-Level Binding --------------------------- DoubleProperty radius = new
+     * SimpleDoubleProperty(2); DoubleBinding volumeOfSphere = new
+     * DoubleBinding() { { super.bind(radius); // initial bind }
+     *
+     * @Override protected double computeValue() { // Math.pow() (power) cubes
+     * the radius return (4 / 3 * Math.PI * Math.pow(radius.get(), 3)); } };
+     * @param primStage
      */
     public void loginDialog(Stage primStage) {
         // create a model representing a user
@@ -627,17 +620,17 @@ public class HelloWorld extends Application {
         BooleanProperty GRANTED_ACCESS = new SimpleBooleanProperty(false);
         int MAX_ATTEMPTS = 3;
         IntegerProperty ATTEMPTS = new SimpleIntegerProperty(0);
-        
+
         // create a transparent stage
         primStage.initStyle(StageStyle.TRANSPARENT);
-        
+
         Group root = new Group();
         Scene scene = new Scene(root, 320, 112, Color.rgb(0, 0, 0, 0));
         primStage.setScene(scene);
-        
+
         // all text, borders, svg paths will use white
         Color foregroundColor = Color.rgb(255, 255, 255, .9);
-        
+
         // rounded rectangular background 
         Rectangle background = new Rectangle(320, 112);
         background.setX(0);
@@ -647,67 +640,66 @@ public class HelloWorld extends Application {
         background.setFill(Color.rgb(0, 0, 0, .55));
         background.setStrokeWidth(1.5);
         background.setStroke(foregroundColor);
-        
+
         // a read only field holding the user name.
         Text userName = new Text();
         userName.setFont(Font.font("SanSerif", FontWeight.BOLD, 30));
         userName.setFill(foregroundColor);
         userName.setSmooth(true);
         userName.textProperty().bind(user.userNameProperty());
-        
+
         // wrap text node
         HBox userNameCell = new HBox();
         userNameCell.prefWidthProperty().bind(primStage.widthProperty().subtract(45));
         userNameCell.getChildren().add(userName);
-        
+
         // pad lock, W3C SVG path notation as a string
         SVGPath padLock = new SVGPath();
         padLock.setFill(foregroundColor);
         padLock.setContent("M24.875,15.334v-4.876c0-4.894-3.981-8.875-8.875-8.875s-8.875,3.981-8.875,8.875v4.876H5.042v15.083h21.916V15.334H24.875zM10.625,10.458c0-2.964,2.411-5.375,5.375-5.375s5.375,2.411,5.375,5.375v4.876h-10.75V10.458zM18.272,26.956h-4.545l1.222-3.667c-0.782-0.389-1.324-1.188-1.324-2.119c0-1.312,1.063-2.375,2.375-2.375s2.375,1.062,2.375,2.375c0,0.932-0.542,1.73-1.324,2.119L18.272,26.956z");
-        
+
         // first row 
         HBox row1 = new HBox();
         row1.getChildren().addAll(userNameCell, padLock);
-        
-        
+
         // password text field 
         PasswordField passwordField = new PasswordField();
         passwordField.setFont(Font.font("SanSerif", 20));
         passwordField.setPromptText("Password");
         // JavaFX CSS attributes
         passwordField.setStyle("-fx-text-fill:black; "
-                            + "-fx-prompt-text-fill:gray; "
-                            + "-fx-highlight-text-fill:black; "
-                            + "-fx-highlight-fill: gray; "
-                            + "-fx-background-color: rgba(255, 255, 255, .80); ");
+                + "-fx-prompt-text-fill:gray; "
+                + "-fx-highlight-text-fill:black; "
+                + "-fx-highlight-fill: gray; "
+                + "-fx-background-color: rgba(255, 255, 255, .80); ");
         passwordField.prefWidthProperty().bind(primStage.widthProperty().subtract(55));
         user.passwordProperty().bind(passwordField.textProperty());
-        
+
         // error icon, W3C SVG path notation as a string
         SVGPath deniedIcon = new SVGPath();
         deniedIcon.setFill(Color.rgb(255, 0, 0, .9));
         deniedIcon.setStroke(Color.WHITE);// 
         deniedIcon.setContent("M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z");
         deniedIcon.setVisible(false);
-        
+
         SVGPath grantedIcon = new SVGPath();
         grantedIcon.setFill(Color.rgb(0, 255, 0, .9));
         grantedIcon.setStroke(Color.WHITE);// 
         grantedIcon.setContent("M2.379,14.729 5.208,11.899 12.958,19.648 25.877,6.733 28.707,9.561 12.958,25.308z");
         grantedIcon.setVisible(false);
-        
+
         // The StackPane layout allows child nodes to be stacked
         StackPane accessIndicator = new StackPane();
         accessIndicator.getChildren().addAll(deniedIcon, grantedIcon);
         accessIndicator.setAlignment(Pos.CENTER_RIGHT);
-        
+
         grantedIcon.visibleProperty().bind(GRANTED_ACCESS);
-        
+
         // second row
         HBox row2 = new HBox(3);
         row2.getChildren().addAll(passwordField, accessIndicator);
         HBox.setHgrow(accessIndicator, Priority.ALWAYS);
-        
+
         // user hits the enter key
         passwordField.setOnAction(actionEvent -> {
             if (GRANTED_ACCESS.get()) {
@@ -715,12 +707,12 @@ public class HelloWorld extends Application {
                 System.out.printf("User %s entered the password: %s\n", user.getUserName(), user.getPassword());
                 Platform.exit();
             } else {
-                deniedIcon.setVisible(true); 
+                deniedIcon.setVisible(true);
             }
             ATTEMPTS.set(ATTEMPTS.add(1).get());
             System.out.println("Attempts: " + ATTEMPTS.get());
         });
-        
+
         // listener when the user types into the password field
         passwordField.textProperty().addListener((obs, ov, nv) -> {
             boolean granted = passwordField.getText().equals(MY_PASS);
@@ -729,7 +721,7 @@ public class HelloWorld extends Application {
                 deniedIcon.setVisible(false);
             }
         });
-        
+
         // listener on number of attempts
         ATTEMPTS.addListener((obs, ov, nv) -> {
             if (MAX_ATTEMPTS == nv.intValue()) {
@@ -738,7 +730,7 @@ public class HelloWorld extends Application {
                 Platform.exit();
             }
         });
-        
+
         VBox formLayout = new VBox(4);
         formLayout.getChildren().addAll(row1, row2);
         formLayout.setLayoutX(12);
@@ -749,20 +741,20 @@ public class HelloWorld extends Application {
         primStage.show();
     }
 
-    
     /**
-     * The HBox layout’s job is to place JavaFX child nodes in a horizontal row (default 
-     * alignment Pos.TOP_LEFT).
-     * The VBox layout is similar to an HBox, except that it places child nodes stacked in a vertical column.
-     * The FlowPane layout node allows child nodes in a row to flow based on the available horizontal spacing
-     * and wraps nodes to the next line when horizontal space is less than the total of all the nodes’ widths.
-     * The BorderPane layout node allows child nodes to be placed in a top, bottom, left, right, or center 
-     * region.
+     * The HBox layout’s job is to place JavaFX child nodes in a horizontal row
+     * (default alignment Pos.TOP_LEFT). The VBox layout is similar to an HBox,
+     * except that it places child nodes stacked in a vertical column. The
+     * FlowPane layout node allows child nodes in a row to flow based on the
+     * available horizontal spacing and wraps nodes to the next line when
+     * horizontal space is less than the total of all the nodes’ widths. The
+     * BorderPane layout node allows child nodes to be placed in a top, bottom,
+     * left, right, or center region.
      */
     public void flowPane(Stage primaryStage) {
         Group root = new Group();
         Scene scene = new Scene(root, 300, 250);
-        
+
         HBox hbox = new HBox(5);         // pixels space between child nodes, equivalent of invoking the setSpacing()
         hbox.setPadding(new Insets(1));  // padding between child nodes only
         Rectangle r1 = new Rectangle(10, 10);
@@ -770,24 +762,22 @@ public class HelloWorld extends Application {
         Rectangle r3 = new Rectangle(5, 20);
         Rectangle r4 = new Rectangle(20, 5);
 
-        HBox.setMargin(r1, new Insets(2,2,2,2));
+        HBox.setMargin(r1, new Insets(2, 2, 2, 2));
         hbox.getChildren().addAll(r1, r2, r3, r4);
-        
-        
+
         Rectangle v1 = new Rectangle(10, 10);
         Rectangle v2 = new Rectangle(20, 20);
         Rectangle v3 = new Rectangle(5, 20);
         Rectangle v4 = new Rectangle(20, 5);
-        
+
         VBox vbox = new VBox(5);        // spacing between child nodes only.
         vbox.setPadding(new Insets(1)); // space between vbox border and child nodes column
-        VBox.setMargin(r1, new Insets(2,2,2,2)); // margin around r1
+        VBox.setMargin(r1, new Insets(2, 2, 2, 2)); // margin around r1
         vbox.getChildren().addAll(v1, v2, v3, v4);
-        
+
         FlowPane flowPane = new FlowPane();
         flowPane.getChildren().addAll(hbox, vbox);
-        
-        
+
 //      Alternative to flowPane is to change layoutX of vbox when windows shows up 
 //       primaryStage.setOnShown((WindowEvent we) -> {
 //            System.out.println("hbox width  " + hbox.getBoundsInParent().getWidth());
@@ -796,12 +786,11 @@ public class HelloWorld extends Application {
 //            System.out.println("vbox height " + vbox.getBoundsInParent().getHeight());
 //            vbox.setLayoutX(hbox.getBoundsInParent().getWidth() + 2);
 //        });
-
         primaryStage.setTitle("FlowPane Example");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     public void gridPane(Stage primaryStage) {
         primaryStage.setTitle("GridPaneForm ");
         BorderPane root = new BorderPane();
@@ -816,28 +805,27 @@ public class HelloWorld extends Application {
         ColumnConstraints column1 = new ColumnConstraints(100); // fixed width
         ColumnConstraints column2 = new ColumnConstraints(50, 150, 300);
         column2.setHgrow(Priority.ALWAYS);
-        gridpane.getColumnConstraints().addAll(column1, column2); 
+        gridpane.getColumnConstraints().addAll(column1, column2);
 
         Label fNameLbl = new Label("First Name");
         TextField fNameFld = new TextField();
         Label lNameLbl = new Label("Last Name");
         TextField lNameFld = new TextField();
-        
+
         Button saveButt = new Button("Save");
-        
+
         // First name label
         GridPane.setHalignment(fNameLbl, HPos.RIGHT);
         gridpane.add(fNameLbl, 0, 0);
-        
-        
+
         // Last name label
         GridPane.setHalignment(lNameLbl, HPos.RIGHT);
         gridpane.add(lNameLbl, 0, 1);
-        
+
         // First name field
-        GridPane.setHalignment(fNameFld, HPos.LEFT);       
+        GridPane.setHalignment(fNameFld, HPos.LEFT);
         gridpane.add(fNameFld, 1, 0);
-        
+
         // Last name field
         GridPane.setHalignment(lNameFld, HPos.LEFT);
         gridpane.add(lNameFld, 1, 1);
@@ -845,13 +833,13 @@ public class HelloWorld extends Application {
         // Save button
         GridPane.setHalignment(saveButt, HPos.RIGHT);
         gridpane.add(saveButt, 1, 2);
-        
+
         // Build top banner area
         FlowPane topBanner = new FlowPane();
         topBanner.setAlignment(Pos.TOP_RIGHT);
         topBanner.setPrefHeight(40);
-        String backgroundStyle = 
-                "-fx-background-color: lightblue;"
+        String backgroundStyle
+                = "-fx-background-color: lightblue;"
                 + "-fx-background-radius: 30%;"
                 + "-fx-background-inset: 5px;";
         topBanner.setStyle(backgroundStyle);
@@ -860,35 +848,36 @@ public class HelloWorld extends Application {
         svgIcon.setContent("M21.066,20.667c1.227-0.682,1.068-3.311-0.354-5.874c-0.611-1.104-1.359-1.998-2.109-2.623c-0.875,0.641-1.941,1.031-3.102,1.031c-1.164,0-2.231-0.391-3.104-1.031c-0.75,0.625-1.498,1.519-2.111,2.623c-1.422,2.563-1.578,5.192-0.35,5.874c0.549,0.312,1.127,0.078,1.723-0.496c-0.105,0.582-0.166,1.213-0.166,1.873c0,2.938,1.139,5.312,2.543,5.312c0.846,0,1.265-0.865,1.466-2.188c0.2,1.314,0.62,2.188,1.461,2.188c1.396,0,2.545-2.375,2.545-5.312c0-0.66-0.062-1.291-0.168-1.873C19.939,20.745,20.516,20.983,21.066,20.667zM15.5,12.201c2.361,0,4.277-1.916,4.277-4.279S17.861,3.644,15.5,3.644c-2.363,0-4.28,1.916-4.28,4.279S13.137,12.201,15.5,12.201zM24.094,14.914c1.938,0,3.512-1.573,3.512-3.513c0-1.939-1.573-3.513-3.512-3.513c-1.94,0-3.513,1.573-3.513,3.513C20.581,13.341,22.153,14.914,24.094,14.914zM28.374,17.043c-0.502-0.907-1.116-1.641-1.732-2.154c-0.718,0.526-1.594,0.846-2.546,0.846c-0.756,0-1.459-0.207-2.076-0.55c0.496,1.093,0.803,2.2,0.861,3.19c0.093,1.516-0.381,2.641-1.329,3.165c-0.204,0.117-0.426,0.183-0.653,0.224c-0.056,0.392-0.095,0.801-0.095,1.231c0,2.412,0.935,4.361,2.088,4.361c0.694,0,1.039-0.71,1.204-1.796c0.163,1.079,0.508,1.796,1.199,1.796c1.146,0,2.09-1.95,2.09-4.361c0-0.542-0.052-1.06-0.139-1.538c0.492,0.472,0.966,0.667,1.418,0.407C29.671,21.305,29.541,19.146,28.374,17.043zM6.906,14.914c1.939,0,3.512-1.573,3.512-3.513c0-1.939-1.573-3.513-3.512-3.513c-1.94,0-3.514,1.573-3.514,3.513C3.392,13.341,4.966,14.914,6.906,14.914zM9.441,21.536c-1.593-0.885-1.739-3.524-0.457-6.354c-0.619,0.346-1.322,0.553-2.078,0.553c-0.956,0-1.832-0.321-2.549-0.846c-0.616,0.513-1.229,1.247-1.733,2.154c-1.167,2.104-1.295,4.262-0.287,4.821c0.451,0.257,0.925,0.064,1.414-0.407c-0.086,0.479-0.136,0.996-0.136,1.538c0,2.412,0.935,4.361,2.088,4.361c0.694,0,1.039-0.71,1.204-1.796c0.165,1.079,0.509,1.796,1.201,1.796c1.146,0,2.089-1.95,2.089-4.361c0-0.432-0.04-0.841-0.097-1.233C9.874,21.721,9.651,21.656,9.441,21.536z");
         svgIcon.setStroke(Color.LIGHTGRAY);
         svgIcon.setFill(Color.WHITE);
-        
+
         Text contactText = new Text("Contacts");
         contactText.setFill(Color.WHITE);
-        
+
         Font serif = Font.font("Dialog", 30);
         contactText.setFont(serif);
         topBanner.getChildren().addAll(svgIcon, contactText);
-        
+
         root.setTop(topBanner);
-        root.setCenter(gridpane);        
-        
+        root.setCenter(gridpane);
+
         primaryStage.setScene(scene);
-        
+
         primaryStage.show();
     }
-    
+
     /**
-     * Menu example.
-     * getImtems(): collections that have the ability to notify and update UI 
-     * controls as items are added or removed.
+     * Menu example. getImtems(): collections that have the ability to notify
+     * and update UI controls as items are added or removed.
      * <b>keyboard mnemonics</b>: Alt + first letter after "_"
-     * <b>keyboard combinations</b>: shortcuts such as Ctrl + S (Windows) or Command + S (Mac)
-     * @param primaryStage 
+     * <b>keyboard combinations</b>: shortcuts such as Ctrl + S (Windows) or
+     * Command + S (Mac)
+     *
+     * @param primaryStage
      */
     public void menu(Stage primaryStage) {
         primaryStage.setTitle("Menus Example");
         BorderPane root = new BorderPane();
         Scene scene = new Scene(root, 300, 250, Color.WHITE);
-        
+
         final StringProperty statusProperty = new SimpleStringProperty();
 
         InnerShadow iShadow = new InnerShadow();
@@ -900,7 +889,7 @@ public class HelloWorld extends Application {
         status.setY(50);
         status.setFill(Color.LIME);
         status.setFont(Font.font(null, FontWeight.MEDIUM, 18));
-        
+
         // the label will change consistently with status string property
         status.textProperty().bind(statusProperty);
         statusProperty.set("Keyboard Shortcuts\n"
@@ -912,34 +901,34 @@ public class HelloWorld extends Application {
 
         MenuBar menuBar = new MenuBar();
         menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
-        root.setTop(menuBar); 
+        root.setTop(menuBar);
 
         // File menu - new, save, exit
         Menu fileMenu = new Menu("_File");
         MenuItem newMenuItem = new MenuItem("_New");
         newMenuItem.setOnAction(actionEvent -> statusProperty.set("Ctrl-N"));
-        
+
         MenuItem saveMenuItem = new MenuItem("Save");
         saveMenuItem.setMnemonicParsing(true); // comination
-        saveMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, 
-                                    KeyCombination.SHORTCUT_DOWN));
+        saveMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S,
+                KeyCombination.SHORTCUT_DOWN));
         saveMenuItem.setOnAction(actionEvent -> statusProperty.set("Ctrl-S"));
-        
+
         MenuItem exitMenuItem = new MenuItem("Exit");
-        exitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.X, 
-                                    KeyCombination.SHORTCUT_DOWN));
+        exitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.X,
+                KeyCombination.SHORTCUT_DOWN));
         exitMenuItem.setOnAction(actionEvent -> {
             statusProperty.set("Ctrl-X");
             Platform.exit();
         });
-        
+
         scene.getAccelerators().put(
-                new KeyCodeCombination(KeyCode.E, 
-                                       KeyCombination.SHORTCUT_DOWN, 
-                                       KeyCombination.SHIFT_DOWN),
+                new KeyCodeCombination(KeyCode.E,
+                        KeyCombination.SHORTCUT_DOWN,
+                        KeyCombination.SHIFT_DOWN),
                 () -> statusProperty.set("Ctrl-Shift-E")
         );
-        
+
         // if you click with mouse right button on every part of the scene but the menu,
         // it will appear a context menu with Exit menu item
         ContextMenu contextFileMenu = new ContextMenu(exitMenuItem);
@@ -952,12 +941,12 @@ public class HelloWorld extends Application {
             }
         });
 
-        fileMenu.getItems().addAll(newMenuItem, 
-                saveMenuItem, 
-                new SeparatorMenuItem(), 
+        fileMenu.getItems().addAll(newMenuItem,
+                saveMenuItem,
+                new SeparatorMenuItem(),
                 exitMenuItem
         );
-        
+
         // Cameras menu - camera 1, camera 2
         Menu cameraMenu = new Menu("_Cameras");
         CheckMenuItem cam1MenuItem = new CheckMenuItem("Show Camera 1");
@@ -968,13 +957,12 @@ public class HelloWorld extends Application {
         cam2MenuItem.setSelected(true);
         cameraMenu.getItems().add(cam2MenuItem);
 
-
         // Alarm menu
         Menu alarmMenu = new Menu("_Alarm");
 
         // sound or turn alarm off, one exclude the other
         ToggleGroup tGroup = new ToggleGroup();
-        RadioMenuItem soundAlarmItem = new RadioMenuItem("Sound Alarm"); 
+        RadioMenuItem soundAlarmItem = new RadioMenuItem("Sound Alarm");
         soundAlarmItem.setToggleGroup(tGroup);
 
         RadioMenuItem stopAlarmItem = new RadioMenuItem("Alarm Off");
@@ -982,8 +970,8 @@ public class HelloWorld extends Application {
         stopAlarmItem.setSelected(true);
 
         alarmMenu.getItems().addAll(
-                soundAlarmItem, 
-                stopAlarmItem, 
+                soundAlarmItem,
+                stopAlarmItem,
                 new SeparatorMenuItem());
 
         Menu contingencyPlans = new Menu("Contingent Plans");
@@ -999,11 +987,12 @@ public class HelloWorld extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     /**
-     * Picklists examples with ObservableLists. It's enough to remove or add 
+     * Picklists examples with ObservableLists. It's enough to remove or add
      * items to these lists for refreshing UI
-     * @param primaryStage 
+     *
+     * @param primaryStage
      */
     public void observableList(Stage primaryStage) {
         primaryStage.setTitle("Hero Picker: Working with ObservableLists");
@@ -1020,7 +1009,7 @@ public class HelloWorld extends Application {
         ColumnConstraints column3 = new ColumnConstraints(150, 150, Double.MAX_VALUE);
         column1.setHgrow(Priority.ALWAYS);
         column3.setHgrow(Priority.ALWAYS);
-        gridpane.getColumnConstraints().addAll(column1, column2, column3); 
+        gridpane.getColumnConstraints().addAll(column1, column2, column3);
 
         // Candidates label
         Label candidatesLbl = new Label("Candidates");
@@ -1033,13 +1022,13 @@ public class HelloWorld extends Application {
         GridPane.setHalignment(heroesLbl, HPos.CENTER);
 
         // Candidates
-        final ObservableList<String> candidates = 
-                FXCollections.observableArrayList(
-                "Superman", "Spiderman", "Wolverine",
-                "Police", "Fire Rescue", "Soldiers", 
-                "Dad & Mom", "Doctor", "Politician", 
-                "Pastor", "Teacher"
-        );
+        final ObservableList<String> candidates
+                = FXCollections.observableArrayList(
+                        "Superman", "Spiderman", "Wolverine",
+                        "Police", "Fire Rescue", "Soldiers",
+                        "Dad & Mom", "Doctor", "Politician",
+                        "Pastor", "Teacher"
+                );
         final ListView<String> candidatesListView = new ListView<>(candidates);
         gridpane.add(candidatesListView, 0, 1);
 
@@ -1071,7 +1060,7 @@ public class HelloWorld extends Application {
         });
 
         VBox vbox = new VBox(5);
-        vbox.getChildren().addAll(sendRightButton,sendLeftButton);
+        vbox.getChildren().addAll(sendRightButton, sendLeftButton);
 
         gridpane.add(vbox, 1, 1);
         root.setCenter(gridpane);
@@ -1080,10 +1069,11 @@ public class HelloWorld extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     /**
      * TableView example
-     * @param primaryStage 
+     *
+     * @param primaryStage
      */
     public void tableView(Stage primaryStage) {
         primaryStage.setTitle("Bosses and Employees: Chapter 4 Working with Tables");
@@ -1121,21 +1111,21 @@ public class HelloWorld extends Application {
             public ListCell<Person> call(ListView<Person> param) {
                 final Label leadLbl = new Label();
                 final Tooltip tooltip = new Tooltip();
-                    final ListCell<Person> cell = new ListCell<Person>() {
-                        /* The job of the updateItem() method is to obtain each person’s information, 
+                final ListCell<Person> cell = new ListCell<Person>() {
+                    /* The job of the updateItem() method is to obtain each person’s information, 
                          * which then updates a Label control (leadLbl) */
-                        @Override 
-                        public void updateItem(Person item, boolean empty) {
-                                super.updateItem(item, empty);
-                                if (item != null) {
-                                    leadLbl.setText(item.getAliasName());
-                                    setText(item.getFirstName() + " " + item.getLastName());
-                                    tooltip.setText(item.getAliasName());
-                                    setTooltip(tooltip);
-                                }
+                    @Override
+                    public void updateItem(Person item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item != null) {
+                            leadLbl.setText(item.getAliasName());
+                            setText(item.getFirstName() + " " + item.getLastName());
+                            tooltip.setText(item.getAliasName());
+                            setTooltip(tooltip);
                         }
-                    }; // ListCell
-                    return cell;
+                    }
+                }; // ListCell
+                return cell;
 
             }
         }); // setCellFactory
@@ -1180,11 +1170,12 @@ public class HelloWorld extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     /**
-     * A private method getPeople() that returns an ObservableList containing Person instances. 
-     * A boss may contain zero to many employees
-     * @return 
+     * A private method getPeople() that returns an ObservableList containing
+     * Person instances. A boss may contain zero to many employees
+     *
+     * @return
      */
     private ObservableList<Person> getPeople() {
         ObservableList<Person> people = FXCollections.<Person>observableArrayList();
@@ -1210,5 +1201,110 @@ public class HelloWorld extends Application {
         people.add(biker);
 
         return people;
+    }
+
+    private static Task copyWorker;
+    
+    public void backgroundProcess(Stage primaryStage) {
+        final int numFiles = 30;
+        
+        primaryStage.setTitle("BackgroundProcesses: Chapter 4 Background Processes");
+        Group root = new Group();
+        Scene scene = new Scene(root, 330, 120, Color.WHITE);
+
+        BorderPane mainPane = new BorderPane();
+        mainPane.layoutXProperty().bind(scene.widthProperty().subtract(mainPane.widthProperty()).divide(2));
+        root.getChildren().add(mainPane);
+
+        final Label label = new Label("Files Transfer:");
+        final ProgressBar progressBar = new ProgressBar(0);
+        final ProgressIndicator progressIndicator = new ProgressIndicator(0);
+
+        final HBox hb = new HBox();
+        hb.setSpacing(5);
+        hb.setAlignment(Pos.CENTER);
+        hb.getChildren().addAll(label, progressBar, progressIndicator);
+        mainPane.setTop(hb);
+
+        final Button startButton = new Button("Start");
+        final Button cancelButton = new Button("Cancel");
+        final TextArea textArea = new TextArea();
+        textArea.setEditable(false);
+        textArea.setPrefSize(200, 70);
+        final HBox hb2 = new HBox();
+        hb2.setSpacing(5);
+        hb2.setAlignment(Pos.CENTER);
+        hb2.getChildren().addAll(startButton, cancelButton, textArea);
+        mainPane.setBottom(hb2);
+
+        // wire up start button
+        startButton.setOnAction((ActionEvent event) -> {
+            startButton.setDisable(true);
+            progressBar.setProgress(0);
+            progressIndicator.setProgress(0);
+            textArea.setText("");
+            cancelButton.setDisable(false);
+            copyWorker = createWorker(numFiles);
+
+            // wire up progress bar
+            progressBar.progressProperty().unbind();
+            progressBar.progressProperty().bind(copyWorker.progressProperty());
+            progressIndicator.progressProperty().unbind();
+            progressIndicator.progressProperty().bind(copyWorker.progressProperty());
+
+            // append to text area box
+            copyWorker.messageProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                textArea.appendText(newValue + "\n");
+            });
+
+            new Thread(copyWorker).start();
+        });
+
+        /* cancel button will kill worker and reset. 
+         * Once a worker Task is cancelled it cannot be reused. That is why the 
+         * Start button re-creates a new Task. If you want a more robust reusable solution, 
+         * look at the javafx.concurrent.Service class. */
+        cancelButton.setOnAction((ActionEvent event) -> {
+            startButton.setDisable(false);
+            cancelButton.setDisable(true);
+            copyWorker.cancel(true);
+
+            // reset
+            progressBar.progressProperty().unbind();
+            progressBar.setProgress(0);
+            progressIndicator.progressProperty().unbind();
+            progressIndicator.setProgress(0);
+            textArea.appendText("File transfer was cancelled.");
+        });
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private Task createWorker(final int numFiles) {
+        return new Task() {
+
+            @Override
+            protected Object call() throws Exception {
+                for (int i = 0; i < numFiles; i++) {
+                    long elapsedTime = System.currentTimeMillis();
+                    copyFile("some file", "some dest file");
+                    elapsedTime = System.currentTimeMillis() - elapsedTime;
+                    String status = elapsedTime + " milliseconds";
+
+                    // queue up status
+                    updateMessage(status);
+                    updateProgress(i + 1, numFiles); // (progress, max)
+                }
+                return true;
+            }
+        };
+    }
+
+    private void copyFile(String src, String dest) throws InterruptedException {
+        // simulate a long time
+        Random rnd = new Random(System.currentTimeMillis());
+        long millis = rnd.nextInt(1000);
+        Thread.sleep(millis);
     }
 }
